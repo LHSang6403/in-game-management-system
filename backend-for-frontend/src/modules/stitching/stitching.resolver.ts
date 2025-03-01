@@ -1,5 +1,4 @@
 import { Resolver, Query, Context, Mutation, Args } from '@nestjs/graphql';
-import { GraphQLSchema, graphql } from 'graphql';
 import { Inject } from '@nestjs/common';
 import { StitchingService } from './stitching.service';
 import GraphQLJSON from 'graphql-type-json';
@@ -23,28 +22,12 @@ export class StitchingResolver {
     variables: any,
     @Context() context: any,
   ): Promise<any> {
-    if (!this.stitchingService.mergedSchema) {
-      throw new Error('Merged schema is not available');
-    }
-
-    try {
-      const result = await graphql({
-        schema: this.stitchingService.mergedSchema as GraphQLSchema,
-        source: query,
-        variableValues: variables || {},
-        contextValue: context,
-      });
-
-      if (result.errors) {
-        throw new Error(
-          `GraphQL Errors: ${result.errors.map((e) => e.message).join(', ')}`,
-        );
-      }
-
-      return result.data;
-    } catch (error) {
-      throw new Error(`Error executing query: ${error.message}`);
-    }
+    return this.stitchingService.executeGraphqlOperation(
+      query,
+      variables,
+      context,
+      'query',
+    );
   }
 
   @Mutation(() => GraphQLJSON, { nullable: true })
@@ -54,27 +37,11 @@ export class StitchingResolver {
     variables: any,
     @Context() context: any,
   ): Promise<any> {
-    if (!this.stitchingService.mergedSchema) {
-      throw new Error('Merged schema is not available');
-    }
-
-    try {
-      const result = await graphql({
-        schema: this.stitchingService.mergedSchema as GraphQLSchema,
-        source: mutation,
-        variableValues: variables || {},
-        contextValue: context,
-      });
-
-      if (result.errors) {
-        throw new Error(
-          `GraphQL Errors: ${result.errors.map((e) => e.message).join(', ')}`,
-        );
-      }
-
-      return result.data;
-    } catch (error) {
-      throw new Error(`Error executing mutation: ${error.message}`);
-    }
+    return this.stitchingService.executeGraphqlOperation(
+      mutation,
+      variables,
+      context,
+      'mutation',
+    );
   }
 }

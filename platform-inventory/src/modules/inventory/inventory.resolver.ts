@@ -31,12 +31,18 @@ export class InventoryResolver {
   async updateInventory(
     @Args('id') id: number,
     @Args('change', { type: () => Int }) change: number,
+    @Args('userId') userId: number,
+    @Args('reason') reason: string,
   ) {
-    return this.inventoryService.updateQuantity(id, change);
+    return this.inventoryService.updateQuantity(id, change, userId, reason);
   }
 
   @Mutation(() => InventoryEntity)
-  async removeInventory(@Args('id') id: number) {
-    return this.inventoryService.remove(id);
+  async removeInventory(
+    @Args('id') id: number,
+    @Args('userId') userId: number,
+    @Args('reason') reason: string,
+  ) {
+    return this.inventoryService.remove(id, userId, reason);
   }
 }

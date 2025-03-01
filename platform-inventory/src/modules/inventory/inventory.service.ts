@@ -1,13 +1,18 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { RedisService } from '../redis/redis.service';
 import { CacheKey } from 'src/constants/cache-key.constant';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { RABBITMQ_QUEUES } from 'src/constants/rabbitmq.constant';
 
 @Injectable()
 export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
+
   constructor(
     private prisma: PrismaClient,
     private redisService: RedisService,
+    private rabbitMQService: RabbitMQService,
   ) {}
 
   async create(
@@ -31,6 +36,24 @@ export class InventoryService {
 
     await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
 
+    const transaction = {
+      userId,
+      itemId,
+      oldQty: 0,
+      newQty: quantity,
+      changeQty: quantity,
+      reason: 'Created new inventory entry',
+      status: 'CREATED',
+      timestamp: new Date(),
+    };
+    await this.rabbitMQService.publishToQueue(
+      RABBITMQ_QUEUES.ADD_TRANSACTION,
+      transaction,
+    );
+
+    this.logger.log(
+      `Created inventory for Item ${itemId} with Quantity: ${quantity}`,
+    );
     return inv;
   }
 
@@ -63,30 +86,164 @@ export class InventoryService {
     return inv;
   }
 
-  async updateQuantity(id: number, change: number) {
-    const inv = await this.prisma.inventory.findUnique({ where: { id } });
-    if (!inv) throw new BadRequestException('Inventory not found');
+  async updateQuantity(
+    id: number,
+    change: number,
+    userId: number,
+    reason: string,
+  ) {
+    return this.prisma.$transaction(async (prisma) => {
+      const inv = await prisma.inventory.findUnique({ where: { id } });
+      if (!inv) throw new BadRequestException('Inventory not found');
 
-    const newQty = inv.quantity + change;
-    if (newQty < 0) {
-      throw new BadRequestException('Quantity cannot be negative');
-    }
+      const newQty = inv.quantity + change;
+      if (newQty < 0) {
+        this.logger.warn(
+          `Inventory update failed for item ${id}: Negative balance`,
+        );
 
-    const updated = await this.prisma.inventory.update({
-      where: { id },
-      data: { quantity: newQty },
+        const failedTransaction = {
+          userId,
+          itemId: inv.itemId,
+          oldQty: inv.quantity,
+          newQty: inv.quantity,
+          changeQty: change,
+          reason: `${reason} (Rollback due to negative balance)`,
+          status: 'FAILED',
+          timestamp: new Date(),
+        };
+
+        await this.rabbitMQService.publishToQueue(
+          RABBITMQ_QUEUES.ADD_TRANSACTION,
+          failedTransaction,
+        );
+        throw new BadRequestException('❌ Quantity cannot be negative');
+      }
+
+      const updated = await prisma.inventory.update({
+        where: { id },
+        data: { quantity: newQty },
+      });
+
+      await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
+      await this.redisService.removeKey(CacheKey.INVENTORY.BY_ID(id));
+
+      // Log success transaction
+      const transaction = {
+        userId,
+        itemId: inv.itemId,
+        oldQty: inv.quantity,
+        newQty,
+        changeQty: change,
+        reason,
+        status: 'SUCCESS',
+        timestamp: new Date(),
+      };
+      await this.rabbitMQService.publishToQueue(
+        RABBITMQ_QUEUES.ADD_TRANSACTION,
+        transaction,
+      );
+
+      this.logger.log(`Inventory updated: Item ${id}, New Qty: ${newQty}`);
+
+      return updated;
     });
-    await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
-    await this.redisService.removeKey(CacheKey.INVENTORY.BY_ID(id));
-
-    return updated;
   }
 
-  async remove(id: number) {
-    const inv = await this.prisma.inventory.delete({ where: { id } });
-    await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
-    await this.redisService.removeKey(CacheKey.INVENTORY.BY_ID(id));
+  async remove(id: number, userId: number, reason: string) {
+    return this.prisma.$transaction(async (prisma) => {
+      const inv = await prisma.inventory.findUnique({ where: { id } });
+      if (!inv) throw new BadRequestException('Inventory not found');
 
-    return inv;
+      await prisma.inventory.delete({ where: { id } });
+
+      await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
+      await this.redisService.removeKey(CacheKey.INVENTORY.BY_ID(id));
+
+      // Log DELETE transaction
+      const transaction = {
+        userId,
+        itemId: inv.itemId,
+        oldQty: inv.quantity,
+        newQty: 0,
+        changeQty: -inv.quantity,
+        reason,
+        status: 'DELETED',
+        timestamp: new Date(),
+      };
+      await this.rabbitMQService.publishToQueue(
+        RABBITMQ_QUEUES.ADD_TRANSACTION,
+        transaction,
+      );
+
+      this.logger.log(`Inventory deleted: Item ${id}`);
+    });
+  }
+
+  async updateInventory(
+    itemId: number,
+    changeQty: number,
+    userId: number,
+    reason: string,
+  ) {
+    return this.prisma.$transaction(async (prisma) => {
+      const inventory = await prisma.inventory.findFirst({ where: { itemId } });
+
+      if (!inventory) {
+        throw new Error(`Inventory for item ${itemId} not found`);
+      }
+
+      const newQty = inventory.quantity + changeQty;
+
+      if (newQty < 0) {
+        this.logger.warn(
+          `Inventory update failed for item ${itemId}: Negative balance`,
+        );
+
+        const failedTransaction = {
+          userId,
+          itemId,
+          oldQty: inventory.quantity,
+          newQty: inventory.quantity,
+          changeQty,
+          reason: `${reason} (Rollback due to negative balance)`,
+          status: 'FAILED',
+          timestamp: new Date(),
+        };
+
+        // Send FAILED transaction to RabbitMQ
+        await this.rabbitMQService.publishToQueue(
+          RABBITMQ_QUEUES.ADD_TRANSACTION,
+          failedTransaction,
+        );
+
+        throw new Error(`Insufficient inventory for item ${itemId}`);
+      }
+
+      // Update inventory
+      await prisma.inventory.updateMany({
+        where: { itemId },
+        data: { quantity: newQty },
+      });
+
+      const successfulTransaction = {
+        userId,
+        itemId,
+        oldQty: inventory.quantity,
+        newQty,
+        changeQty,
+        reason,
+        status: 'SUCCESS',
+        timestamp: new Date(),
+      };
+
+      // Send SUCCESS transaction to RabbitMQ
+      await this.rabbitMQService.publishToQueue(
+        RABBITMQ_QUEUES.ADD_TRANSACTION,
+        successfulTransaction,
+      );
+
+      this.logger.log(`Inventory updated: Item ${itemId}, New Qty: ${newQty}`);
+    });
   }
 }

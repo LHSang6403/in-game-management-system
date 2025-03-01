@@ -4,7 +4,7 @@ import { loadSchema } from '@graphql-tools/load';
 import { UrlLoader } from '@graphql-tools/url-loader';
 import { wrapSchema } from '@graphql-tools/wrap';
 import fetch from 'cross-fetch';
-import { GraphQLError, print, GraphQLSchema } from 'graphql';
+import { GraphQLError, print, GraphQLSchema, graphql } from 'graphql';
 
 @Injectable()
 export class StitchingService implements OnModuleInit {
@@ -110,11 +110,12 @@ export class StitchingService implements OnModuleInit {
           const query = print(document);
           this.logger.log(`Executing query on ${uri}:`, query);
 
+          const authToken = context.req?.headers['authorization'] || '';
           const fetchResult = await fetch(uri, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              authorization: context.req?.headers['authorization'] || '',
+              authorization: authToken,
             },
             body: JSON.stringify({ query, variables }),
           });
@@ -135,6 +136,37 @@ export class StitchingService implements OnModuleInit {
     } catch (error) {
       this.logger.error(`Failed to load schema from ${uri}: ${error.message}`);
       throw error;
+    }
+  }
+
+  async executeGraphqlOperation(
+    query: string,
+    variables: any,
+    context: any,
+    operationType: 'query' | 'mutation',
+  ): Promise<any> {
+    if (!this.mergedSchema) {
+      throw new Error('Merged schema is not available');
+    }
+
+    try {
+      const result = await graphql({
+        schema: this.mergedSchema as GraphQLSchema,
+        source: query,
+        variableValues: variables || {},
+        contextValue: context,
+      });
+
+      if (result.errors) {
+        throw new Error(
+          `GraphQL Errors: ${result.errors.map((e) => e.message).join(', ')}`,
+        );
+      }
+
+      return result.data;
+    } catch (error) {
+      this.logger.error(`Error executing ${operationType}: ${error.message}`);
+      throw new Error(`Error executing ${operationType}: ${error.message}`);
     }
   }
 }

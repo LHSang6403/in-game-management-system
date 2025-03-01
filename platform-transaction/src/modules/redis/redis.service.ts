@@ -28,8 +28,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.get(key);
   }
 
-  async setValue(key: string, value: string): Promise<'OK'> {
-    return this.client.set(key, value);
+  async setValue(
+    key: string,
+    value: string,
+    ttlSeconds: number = 60,
+  ): Promise<'OK'> {
+    return this.client.set(key, value, 'EX', ttlSeconds);
   }
 
   async removeKey(key: string): Promise<number> {

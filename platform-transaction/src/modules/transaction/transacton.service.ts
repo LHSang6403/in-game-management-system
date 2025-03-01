@@ -1,10 +1,12 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RABBITMQ_QUEUES } from 'src/constants/rabbitmq.constant';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { ElasticsearchService } from '../elastic-search/elastic-search.service';
 
 @Injectable()
 export class TransactionService implements OnModuleInit {
+  private readonly logger = new Logger(TransactionService.name);
+
   private readonly transactionIndex =
     process.env.ELASTICSEARCH_INDEX_NAME || 'transaction-logs';
 
@@ -14,10 +16,15 @@ export class TransactionService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    this.logger.log(`Subscribing to queue: ${RABBITMQ_QUEUES.ADD_TRANSACTION}`);
+
     await this.rabbitMQ.subscribeQueue(
       RABBITMQ_QUEUES.ADD_TRANSACTION,
       async (msgContent) => {
-        console.log('Received add-transaction event:', msgContent);
+        this.logger.log(
+          `Received ${RABBITMQ_QUEUES.ADD_TRANSACTION} event:`,
+          msgContent,
+        );
 
         await this.elasticsearchService.createIndex(this.transactionIndex);
 
@@ -26,11 +33,13 @@ export class TransactionService implements OnModuleInit {
           itemId: msgContent.itemId,
           oldQty: msgContent.oldQty,
           newQty: msgContent.newQty,
+          changeQty: msgContent.changeQty,
           reason: msgContent.reason,
-          timestamp: new Date().toISOString(),
+          status: msgContent.status,
+          timestamp: msgContent.timestamp || new Date().toISOString(),
         });
 
-        console.log('Transaction logged to Elasticsearch');
+        this.logger.log('Transaction logged to Elasticsearch');
       },
     );
   }

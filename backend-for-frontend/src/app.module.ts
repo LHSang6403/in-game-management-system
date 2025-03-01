@@ -5,8 +5,8 @@ import { StitchingService } from './modules/stitching/stitching.service';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { HttpModule } from '@nestjs/axios';
-// import { AuthGuard } from './auth/auth.guard';
-// import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
+import { APP_GUARD } from '@nestjs/core';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { GraphQLLoggerMiddleware } from './middlewares/graphql-logger.middleware';
 
@@ -34,10 +34,10 @@ import { GraphQLLoggerMiddleware } from './middlewares/graphql-logger.middleware
   controllers: [],
   providers: [
     AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {
