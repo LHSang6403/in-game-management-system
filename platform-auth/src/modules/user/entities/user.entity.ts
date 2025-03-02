@@ -8,18 +8,18 @@ export class UserEntity {
   @Field(() => ID)
   id: number;
 
-  @Field()
+  @Field(() => String)
   email: string;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
   @Field(() => Role)
   role: Role;
 
-  @Field()
+  @Field(() => String)
   createdAt: string;
 
-  @Field()
+  @Field(() => String)
   updatedAt: string;
 }

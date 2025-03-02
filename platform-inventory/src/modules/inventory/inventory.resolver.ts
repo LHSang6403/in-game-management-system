@@ -1,7 +1,9 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { InventoryEntity } from './entities/inventory.entity';
-import { InventoryService } from './inventory.service';
-import { Int } from '@nestjs/graphql';
+import { InventoryEntity } from '@modules/inventory/entities/inventory.entity';
+import { InventoryService } from '@modules/inventory/inventory.service';
+import { CreateInventoryInput } from '@modules/inventory/dto/create-inventory.input';
+import { UpdateInventoryInput } from '@modules/inventory/dto/update-inventory.input';
+import { RemoveInventoryInput } from '@modules/inventory/dto/remove-inventory.input';
 
 @Resolver(() => InventoryEntity)
 export class InventoryResolver {
@@ -18,31 +20,27 @@ export class InventoryResolver {
   }
 
   @Mutation(() => InventoryEntity)
-  async createInventory(
-    @Args('userId') userId: number,
-    @Args('itemId', { type: () => Int }) itemId: number,
-    @Args('quantity', { type: () => Int }) quantity: number,
-    @Args('json', { nullable: true }) json?: string,
-  ) {
-    return this.inventoryService.create(userId, itemId, quantity, json);
+  async createInventory(@Args('data') data: CreateInventoryInput) {
+    return this.inventoryService.create(
+      data.userId,
+      data.itemId,
+      data.quantity,
+      data.json,
+    );
   }
 
   @Mutation(() => InventoryEntity)
-  async updateInventory(
-    @Args('id') id: number,
-    @Args('change', { type: () => Int }) change: number,
-    @Args('userId') userId: number,
-    @Args('reason') reason: string,
-  ) {
-    return this.inventoryService.updateQuantity(id, change, userId, reason);
+  async updateInventory(@Args('data') data: UpdateInventoryInput) {
+    return this.inventoryService.updateQuantity(
+      data.id,
+      data.change,
+      data.userId,
+      data.reason,
+    );
   }
 
   @Mutation(() => InventoryEntity)
-  async removeInventory(
-    @Args('id') id: number,
-    @Args('userId') userId: number,
-    @Args('reason') reason: string,
-  ) {
-    return this.inventoryService.remove(id, userId, reason);
+  async removeInventory(@Args('data') data: RemoveInventoryInput) {
+    return this.inventoryService.remove(data.id, data.userId, data.reason);
   }
 }

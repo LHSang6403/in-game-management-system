@@ -1,12 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { CreateItemInput } from './dto/create-item.input';
-import { UpdateItemInput } from './dto/update-item.input';
-import { RedisService } from 'src/modules/redis/redis.service';
-import { CacheKey } from 'src/constants/cache-key.constant';
+import { CreateItemInput } from '@modules/item/dto/create-item.input';
+import { UpdateItemInput } from '@modules/item/dto/update-item.input';
+import { RedisService } from '@modules/redis/redis.service';
+import { CacheKey } from '@constants/cache-key.constant';
 
 @Injectable()
 export class ItemService {
+  logger = new Logger(ItemService.name);
+
   constructor(
     private prisma: PrismaClient,
     private redisService: RedisService,
@@ -34,6 +36,8 @@ export class ItemService {
 
     const itemKey = CacheKey.ITEMS.BY_ID(item.id);
     await this.redisService.setValue(itemKey, JSON.stringify(item));
+
+    this.logger.log(`Item created: ${item.name}`);
 
     return item;
   }
@@ -109,6 +113,8 @@ export class ItemService {
     const itemKey = CacheKey.ITEMS.BY_ID(data.id);
     await this.redisService.setValue(itemKey, JSON.stringify(updated));
 
+    this.logger.log(`Item updated: ${updated.name}`);
+
     return updated;
   }
 
@@ -118,6 +124,8 @@ export class ItemService {
     });
 
     await this.redisService.removeByPattern(CacheKey.ITEMS.ALL);
+
+    this.logger.log(`Item removed: ${removed.name}`);
 
     return removed;
   }

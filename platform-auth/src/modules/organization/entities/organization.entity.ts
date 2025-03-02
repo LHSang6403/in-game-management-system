@@ -5,7 +5,7 @@ export class OrganizationEntity {
   @Field(() => ID)
   id: number;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
   @Field(() => [OrganizationEntity], { nullable: true })
@@ -14,9 +14,9 @@ export class OrganizationEntity {
   @Field(() => OrganizationEntity, { nullable: true })
   parentOrg?: OrganizationEntity;
 
-  @Field()
+  @Field(() => String)
   createdAt: string;
 
-  @Field()
+  @Field(() => String)
   updatedAt: string;
 }

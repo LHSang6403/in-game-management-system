@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { RABBITMQ_QUEUES } from 'src/constants/rabbitmq.constant';
-import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
-import { ElasticsearchService } from '../elastic-search/elastic-search.service';
+import { RABBITMQ_QUEUES } from '@constants/rabbitmq.constant';
+import { RabbitMQService } from '@modules/rabbitmq/rabbitmq.service';
+import { ElasticsearchService } from '@modules/elastic-search/elastic-search.service';
 
 @Injectable()
 export class TransactionService implements OnModuleInit {
@@ -27,7 +27,6 @@ export class TransactionService implements OnModuleInit {
         );
 
         await this.elasticsearchService.createIndex(this.transactionIndex);
-
         await this.elasticsearchService.indexDocument(this.transactionIndex, {
           userId: msgContent.userId,
           itemId: msgContent.itemId,
@@ -60,6 +59,8 @@ export class TransactionService implements OnModuleInit {
       this.transactionIndex,
       esQuery,
     );
+
+    this.logger.log(`Search for "${term}" returned ${result.length} hits`);
 
     return result.map((hit: any) => {
       const source = hit._source;

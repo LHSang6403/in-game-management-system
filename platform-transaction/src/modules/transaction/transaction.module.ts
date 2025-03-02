@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
-import { TransactionService } from './transacton.service';
-import { TransactionResolver } from './transaction.resolver';
+import { RabbitMQModule } from '@modules/rabbitmq/rabbitmq.module';
+import { TransactionService } from '@modules/transaction/transacton.service';
+import { TransactionResolver } from '@modules/transaction/transaction.resolver';
 
 @Module({
   imports: [RabbitMQModule],

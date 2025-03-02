@@ -2,9 +2,9 @@ import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateItemTypeInput {
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   imageUrl?: string;
 }

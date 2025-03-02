@@ -6,24 +6,24 @@ export class ItemEntity {
   @Field(() => Int)
   id: number;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field()
+  @Field(() => String)
   rarity: string;
 
   @Field(() => Int)
   power: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   imageUrl?: string;
 
   @Field(() => ItemTypeEntity)
   itemType: ItemTypeEntity;
 
-  @Field()
+  @Field(() => String)
   createdAt: string;
 
-  @Field()
+  @Field(() => String)
   updatedAt: string;
 }

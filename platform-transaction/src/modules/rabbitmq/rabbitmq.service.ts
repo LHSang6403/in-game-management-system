@@ -1,12 +1,13 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
-import { RABBITMQ_QUEUES } from 'src/constants/rabbitmq.constant';
+import { RABBITMQ_QUEUES } from '@constants/rabbitmq.constant';
 
 @Injectable()
 export class RabbitMQService implements OnModuleInit {
+  logger = new Logger(RabbitMQService.name);
+
   private connection: amqp.Connection;
   private channel: amqp.Channel;
-
   private queuesToAssert = [RABBITMQ_QUEUES.ADD_TRANSACTION];
 
   async onModuleInit() {
@@ -16,7 +17,7 @@ export class RabbitMQService implements OnModuleInit {
 
     for (const q of this.queuesToAssert) {
       await this.channel.assertQueue(q, { durable: true });
-      console.log(`RabbitMQService: Queue "${q}" asserted.`);
+      this.logger.log(`RabbitMQService: Queue "${q}" asserted.`);
     }
   }
 
@@ -28,11 +29,11 @@ export class RabbitMQService implements OnModuleInit {
           callback(content);
           this.channel.ack(msg);
         } catch (error) {
-          console.error(
+          this.logger.error(
             `Error processing message from queue "${queueName}":`,
             error,
           );
-          // channel.nack(msg) nếu muốn requeue/retry
+          // channel.nack(msg) // requeue/retry
         }
       }
     });

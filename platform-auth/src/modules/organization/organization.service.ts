@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { CreateOrganizationInput } from './dto/create-organization.input';
-import { UpdateOrganizationInput } from './dto/update-organization.input';
-import { RedisService } from '../redis/redis.service';
-import { CacheKey } from 'src/constants/cache-key.constant';
+import { CreateOrganizationInput } from '@modules/organization/dto/create-organization.input';
+import { UpdateOrganizationInput } from '@modules/organization/dto/update-organization.input';
+import { RedisService } from '@modules/redis/redis.service';
+import { CacheKey } from '@constants/cache-key.constant';
 
 @Injectable()
 export class OrganizationService {
+  private readonly logger = new Logger(OrganizationService.name);
+
   constructor(
     private prisma: PrismaClient,
     private redisService: RedisService,
@@ -24,6 +26,8 @@ export class OrganizationService {
 
     const orgKey = CacheKey.ORGS.BY_ID(org.id);
     await this.redisService.setValue(orgKey, JSON.stringify(org));
+
+    this.logger.log(`Organization ${org.id} has been created`);
 
     return org;
   }
@@ -76,15 +80,30 @@ export class OrganizationService {
     const orgKey = CacheKey.ORGS.BY_ID(id);
     await this.redisService.setValue(orgKey, JSON.stringify(org));
 
+    this.logger.log(`Organization ${id} has been updated`);
+
     return org;
   }
 
   async remove(id: number) {
-    // Nếu tổ chức đã có user/children, bạn cần xử lý logic
+    return this.prisma.$transaction(async (prisma) => {
+      const subOrgs = await prisma.organization.findMany({
+        where: { parentOrgId: id },
+      });
 
-    await this.prisma.organization.delete({ where: { id } });
-    await this.redisService.removeByPattern(CacheKey.ORGS.ALL);
+      await prisma.organization.updateMany({
+        where: {
+          OR: [{ id }, { parentOrgId: id }],
+        },
+        data: { isDeleted: true },
+      });
 
-    return true;
+      await this.redisService.removeByPattern(CacheKey.ORGS.ALL);
+      this.logger.log(
+        `Organization ${id} and its ${subOrgs.length} sub-organizations marked as deleted.`,
+      );
+
+      return true;
+    });
   }
 }

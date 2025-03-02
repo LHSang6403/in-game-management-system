@@ -17,18 +17,27 @@ model User {
   email          String        @unique
   password       String
   name           String
-  role           Role
 
+  role           Role
   organizationId Int
   organization   Organization? @relation(fields: [organizationId], references: [id])
 
+  extra          Json?
+
+  isDeleted      Boolean       @default(false)
+
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  @@unique([email, organizationId])
+
+  @@index([name])
+  @@index([organizationId])
 }
 
 model Organization {
   id          Int            @id @default(autoincrement())
-  name        String
+  name        String         @unique
 
   parentOrgId Int?
   parentOrg   Organization?  @relation("OrganizationHierarchy", fields: [parentOrgId], references: [id])
@@ -36,6 +45,12 @@ model Organization {
 
   users       User[]
 
+  isDeleted   Boolean        @default(false)
+
+  extra       Json?
+
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([parentOrgId])
 }

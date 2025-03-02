@@ -1,8 +1,8 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { ItemService } from './item.service';
-import { CreateItemInput } from './dto/create-item.input';
-import { UpdateItemInput } from './dto/update-item.input';
-import { ItemEntity } from './entities/item.entity';
+import { ItemService } from '@modules/item/item.service';
+import { CreateItemInput } from '@modules/item/dto/create-item.input';
+import { UpdateItemInput } from '@modules/item/dto/update-item.input';
+import { ItemEntity } from '@modules/item/entities/item.entity';
 
 @Resolver(() => ItemEntity)
 export class ItemResolver {

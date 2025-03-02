@@ -9,6 +9,7 @@ import { GraphQLError, print, GraphQLSchema, graphql } from 'graphql';
 @Injectable()
 export class StitchingService implements OnModuleInit {
   private readonly logger = new Logger(StitchingService.name);
+
   public mergedSchema = undefined;
 
   async onModuleInit() {
@@ -88,6 +89,7 @@ export class StitchingService implements OnModuleInit {
         );
         const schema = await this.makeRemoteSchema(service.url);
         this.logger.log(`Successfully loaded schema for ${service.name}`);
+
         return schema;
       } catch (error) {
         this.logger.warn(
@@ -158,6 +160,9 @@ export class StitchingService implements OnModuleInit {
       });
 
       if (result.errors) {
+        this.logger.error(
+          `GraphQL Errors: ${result.errors.map((e) => e.message).join(', ')}`,
+        );
         throw new Error(
           `GraphQL Errors: ${result.errors.map((e) => e.message).join(', ')}`,
         );

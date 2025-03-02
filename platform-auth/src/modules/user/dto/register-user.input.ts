@@ -3,13 +3,13 @@ import { Role } from '@prisma/client';
 
 @InputType()
 export class RegisterUserInput {
-  @Field()
+  @Field(() => String)
   email: string;
 
-  @Field()
+  @Field(() => String)
   password: string;
 
-  @Field({ defaultValue: 'Default Name' })
+  @Field(() => String, { defaultValue: 'Default Name' })
   name?: string;
 
   @Field(() => Role, { defaultValue: Role.PLAYER })

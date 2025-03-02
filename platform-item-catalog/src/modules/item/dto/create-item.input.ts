@@ -2,10 +2,10 @@ import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateItemInput {
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field()
+  @Field(() => String)
   rarity: string;
 
   @Field(() => Int)

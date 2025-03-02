@@ -117,7 +117,7 @@ export class InventoryService {
           RABBITMQ_QUEUES.ADD_TRANSACTION,
           failedTransaction,
         );
-        throw new BadRequestException('❌ Quantity cannot be negative');
+        throw new BadRequestException('Quantity cannot be negative');
       }
 
       const updated = await prisma.inventory.update({

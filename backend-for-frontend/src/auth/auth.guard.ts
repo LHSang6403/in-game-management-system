@@ -23,7 +23,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const response = await this.http.axiosRef.post(
-        'http://localhost:3001/verify',
+        process.env.AUTH_SERVICE_VERIFY_URL || 'http://localhost:3001/verify',
         {
           token,
         },

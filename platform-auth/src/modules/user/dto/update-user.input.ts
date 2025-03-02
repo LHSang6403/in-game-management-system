@@ -3,13 +3,13 @@ import { Role } from '@prisma/client';
 
 @InputType()
 export class UpdateUserInput {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   email?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   password?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   name?: string;
 
   @Field(() => Role, { nullable: true })

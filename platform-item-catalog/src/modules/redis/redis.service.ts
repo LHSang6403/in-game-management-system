@@ -1,22 +1,30 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import Redis from 'ioredis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
+  logger = new Logger(RedisService.name);
   private client: Redis;
 
   onModuleInit() {
     this.client = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      // password: process.env.REDIS_PASSWORD || '', // nếu bạn có đặt password
-      // db: 0, // Nếu cần chọn DB
+      password: process.env.REDIS_PASSWORD || 'mysecurepassword',
     });
+
+    this.logger.log('Redis connected');
   }
 
   onModuleDestroy() {
     if (this.client) {
       this.client.quit();
+      this.logger.log('Redis connection closed');
     }
   }
 

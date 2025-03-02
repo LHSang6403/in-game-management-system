@@ -1,8 +1,15 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { Client } from '@elastic/elasticsearch';
 
 @Injectable()
 export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
+  logger = new Logger(ElasticsearchService.name);
+
   private client: Client;
 
   onModuleInit() {
@@ -12,11 +19,13 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
     this.client = new Client({
       node: `http://${host}:${port}`,
     });
+
+    this.logger.log('Elasticsearch client connected');
   }
 
-  onModuleDestroy() {
-    // Elasticsearch client không nhất thiết cần đóng,
-    // nhưng nếu bạn muốn dọn dẹp, có thể làm ở đây
+  async onModuleDestroy() {
+    await this.client.close();
+    this.logger.log('Elasticsearch connection closed');
   }
 
   getClient() {
@@ -42,6 +51,7 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
       index: indexName,
       body: query,
     });
+
     return result.hits.hits;
   }
 
@@ -51,6 +61,4 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
       await this.client.indices.delete({ index: indexName });
     }
   }
-
-  // ... bạn có thể thêm các hàm update, bulk, scroll, v.v.
 }

@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding inventory data...');
+  console.log('Seeding inventory data...');
 
   const inventoryData = [
     {
@@ -36,12 +36,12 @@ async function main() {
     await prisma.inventory.create({ data });
   }
 
-  console.log('✅ Seeding completed!');
+  console.log('Seeding completed!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding data:', e);
+    console.error('Error seeding data:', e);
     process.exit(1);
   })
   .finally(async () => {

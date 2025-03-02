@@ -21,7 +21,6 @@ async function main() {
     },
   });
 
-  // Tạo item gán vào potionType
   await prisma.item.create({
     data: {
       name: 'Health Potion',

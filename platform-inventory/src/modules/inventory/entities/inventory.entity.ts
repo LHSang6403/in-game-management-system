@@ -18,9 +18,9 @@ export class InventoryEntity {
   @Field(() => GraphQLJSON, { nullable: true })
   json?: typeof GraphQLJSON;
 
-  @Field()
+  @Field(() => String)
   createdAt: string;
 
-  @Field()
+  @Field(() => String)
   updatedAt: string;
 }

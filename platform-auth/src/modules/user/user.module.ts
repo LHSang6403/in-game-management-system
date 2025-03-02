@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
-import { UserService } from './user.service';
-import { JwtStrategy } from './jwt.strategy';
-import { UserResolver } from './user.resolver';
-import { RedisService } from '../redis/redis.service';
+import { UserService } from '@modules/user/user.service';
+import { JwtStrategy } from '@modules/user/jwt.strategy';
+import { UserResolver } from '@modules/user/user.resolver';
+import { RedisService } from '@modules/redis/redis.service';
+import { UserController } from '@modules/user/user.controller';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { RedisService } from '../redis/redis.service';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [],
+  controllers: [UserController],
   providers: [
     RedisService,
     UserResolver,

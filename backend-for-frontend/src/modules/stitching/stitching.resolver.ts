@@ -1,7 +1,8 @@
 import { Resolver, Query, Context, Mutation, Args } from '@nestjs/graphql';
 import { Inject } from '@nestjs/common';
-import { StitchingService } from './stitching.service';
+import { StitchingService } from '@modules/stitching/stitching.service';
 import GraphQLJSON from 'graphql-type-json';
+import { GraphQLContext } from 'src/types/graphql-context.type';
 
 @Resolver()
 export class StitchingResolver {
@@ -19,8 +20,8 @@ export class StitchingResolver {
   async executeQuery(
     @Args('query', { type: () => String }) query: string,
     @Args('variables', { type: () => GraphQLJSON, nullable: true })
-    variables: any,
-    @Context() context: any,
+    variables: object,
+    @Context() context: GraphQLContext,
   ): Promise<any> {
     return this.stitchingService.executeGraphqlOperation(
       query,
@@ -34,8 +35,8 @@ export class StitchingResolver {
   async executeMutation(
     @Args('mutation', { type: () => String }) mutation: string,
     @Args('variables', { type: () => GraphQLJSON, nullable: true })
-    variables: any,
-    @Context() context: any,
+    variables: object,
+    @Context() context: GraphQLContext,
   ): Promise<any> {
     return this.stitchingService.executeGraphqlOperation(
       mutation,

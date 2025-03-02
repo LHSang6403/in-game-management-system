@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { StitchingService } from './stitching.service';
-import { StitchingResolver } from './stitching.resolver';
+import { StitchingService } from '@modules/stitching/stitching.service';
+import { StitchingResolver } from '@modules/stitching/stitching.resolver';
 
 @Module({
   providers: [StitchingService, StitchingResolver],

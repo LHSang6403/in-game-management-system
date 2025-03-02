@@ -1,8 +1,8 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { OrganizationService } from './organization.service';
-import { CreateOrganizationInput } from './dto/create-organization.input';
-import { UpdateOrganizationInput } from './dto/update-organization.input';
-import { OrganizationEntity } from './entities/organization.entity';
+import { OrganizationService } from '@modules/organization/organization.service';
+import { CreateOrganizationInput } from '@modules/organization/dto/create-organization.input';
+import { UpdateOrganizationInput } from '@modules/organization/dto/update-organization.input';
+import { OrganizationEntity } from '@modules/organization/entities/organization.entity';
 
 @Resolver(() => OrganizationEntity)
 export class OrganizationResolver {

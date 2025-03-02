@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { RedisService } from '../redis/redis.service';
-import { InventoryService } from './inventory.service';
+import { RedisService } from '@modules/redis/redis.service';
+import { InventoryService } from '@modules/inventory/inventory.service';
 import { PrismaClient } from '@prisma/client';
-import { InventoryResolver } from './inventory.resolver';
+import { InventoryResolver } from '@modules/inventory/inventory.resolver';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { RabbitMQService } from '@modules/rabbitmq/rabbitmq.service';
 
 @Module({
   imports: [
@@ -13,8 +13,8 @@ import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'transaction_queue',
+          urls: [process.env.RABBIT_MQ || 'amqp://localhost:5672'],
+          queue: process.env.RABBIT_MQ_TRANSACTION_QUEUE || 'transaction_queue',
           queueOptions: { durable: false },
         },
       },

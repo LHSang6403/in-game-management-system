@@ -5,7 +5,7 @@ export class UpdateOrganizationInput {
   @Field(() => Int)
   id: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   name?: string;
 
   @Field(() => Int, { nullable: true })

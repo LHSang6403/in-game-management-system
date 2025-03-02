@@ -2,15 +2,16 @@ version: "3.8"
 services:
   redis:
     image: redis:7
-    container_name: in-game-system-redis
+    container_name: system-redis
+    command: redis-server --requirepass mysecurepassword
     networks:
-      - in-game-system-network
+      - system-network
     ports:
       - "6379:6379"
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: in-game-system-rabbitmq
+    container_name: system-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -18,8 +19,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     networks:
-      - in-game-system-network
+      - system-network
 
 networks:
-  in-game-system-network:
+  system-network:
     external: true

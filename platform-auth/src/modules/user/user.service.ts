@@ -7,10 +7,10 @@ import {
 import { PrismaClient, Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserInput } from './dto/update-user.input';
-import { RegisterUserInput } from './dto/register-user.input';
-import { RedisService } from '../redis/redis.service';
-import { CacheKey } from 'src/constants/cache-key.constant';
+import { UpdateUserInput } from '@modules/user/dto/update-user.input';
+import { RegisterUserInput } from '@modules/user/dto/register-user.input';
+import { RedisService } from '@modules/redis/redis.service';
+import { CacheKey } from '@constants/cache-key.constant';
 import { Logger } from '@nestjs/common';
 
 @Injectable()
@@ -26,17 +26,20 @@ export class UserService {
   async register(data: RegisterUserInput) {
     try {
       let orgId = data.organizationId;
+
       if (!orgId) {
         const newOrg = await this.prisma.organization.create({
           data: {
             name: `${data.name}'s Organization`,
           },
         });
+
         orgId = newOrg.id;
       } else {
         const existingOrg = await this.prisma.organization.findUnique({
           where: { id: orgId },
         });
+
         if (!existingOrg) {
           throw new BadRequestException('Organization does not exist');
         }
@@ -164,6 +167,23 @@ export class UserService {
     } catch (error) {
       this.logger.error(`Error in remove(${id}): ${error.message}`);
       throw new InternalServerErrorException('Failed to delete user');
+    }
+  }
+
+  async verifyToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token);
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return { user };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

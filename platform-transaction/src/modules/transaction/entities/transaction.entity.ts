@@ -5,7 +5,7 @@ export class TransactionEntity {
   @Field(() => ID)
   id: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   userId?: string;
 
   @Field(() => Int, { nullable: true })
@@ -17,9 +17,9 @@ export class TransactionEntity {
   @Field(() => Int, { nullable: true })
   newQty?: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   reason?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   timestamp?: string;
 }

@@ -9,18 +9,22 @@ datasource db {
 
 model ItemType {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String   @unique(map: "unique_item_type_name")
   imageUrl  String?
 
   items     Item[]
 
+  extra     Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
 }
 
 model Item {
   id         Int      @id @default(autoincrement())
-  name       String
+  name       String   @unique(map: "unique_item_name")
   rarity     String
   power      Int
   imageUrl   String?
@@ -28,6 +32,11 @@ model Item {
   itemTypeId Int
   itemType   ItemType @relation(fields: [itemTypeId], references: [id])
 
+  extra      Json?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([power])
+  @@index([createdAt])
 }

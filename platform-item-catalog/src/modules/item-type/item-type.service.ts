@@ -1,12 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { CreateItemTypeInput } from './dto/create-item-type.input';
-import { UpdateItemTypeInput } from './dto/update-item-type.input';
-import { RedisService } from 'src/modules/redis/redis.service';
-import { CacheKey } from 'src/constants/cache-key.constant';
+import { CreateItemTypeInput } from '@modules/item-type/dto/create-item-type.input';
+import { UpdateItemTypeInput } from '@modules/item-type/dto/update-item-type.input';
+import { RedisService } from '@modules/redis/redis.service';
+import { CacheKey } from '@constants/cache-key.constant';
 
 @Injectable()
 export class ItemTypeService {
+  logger = new Logger(ItemTypeService.name);
+
   constructor(
     private prisma: PrismaClient,
     private redisService: RedisService,
@@ -24,6 +26,7 @@ export class ItemTypeService {
 
     const key = CacheKey.ITEM_TYPES.BY_ID(itemType.id);
     await this.redisService.setValue(key, JSON.stringify(itemType));
+    this.logger.log(`ItemType created: ${itemType.name}`);
 
     return itemType;
   }
@@ -84,6 +87,7 @@ export class ItemTypeService {
 
     const key = CacheKey.ITEM_TYPES.BY_ID(id);
     await this.redisService.setValue(key, JSON.stringify(updated));
+    this.logger.log(`ItemType updated: ${updated.name}`);
 
     return updated;
   }
@@ -92,6 +96,7 @@ export class ItemTypeService {
     const removed = await this.prisma.itemType.delete({ where: { id } });
 
     await this.redisService.removeByPattern(CacheKey.ITEM_TYPES.ALL);
+    this.logger.log(`ItemType removed: ${removed.name}`);
 
     return removed;
   }

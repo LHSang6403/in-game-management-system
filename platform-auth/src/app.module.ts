@@ -1,13 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './modules/user/user.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { OrganizationModule } from './modules/organization/organization.module';
+import { AppService } from 'src/app.service';
+import { UserModule } from '@modules/user/user.module';
+import { RedisModule } from '@modules/redis/redis.module';
+import { OrganizationModule } from '@modules/organization/organization.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { GraphQLLoggerMiddleware } from './middlewares/graphql-logger.middleware';
+import { GraphQLLoggerMiddleware } from 'src/middlewares/graphql-logger.middleware';
 
 @Module({
   imports: [
@@ -24,7 +23,7 @@ import { GraphQLLoggerMiddleware } from './middlewares/graphql-logger.middleware
       context: ({ req }) => ({ req }),
     }),
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [AppService],
 })
 export class AppModule implements NestModule {

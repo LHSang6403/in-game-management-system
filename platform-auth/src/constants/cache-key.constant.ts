@@ -1,12 +1,12 @@
 export const CacheKey = {
   ORGS: {
-    ALL: 'orgs:*',
-    BY_ID: (id: number) => `orgs:${id}`,
-    LIST: 'orgs:list',
+    ALL: 'org:*',
+    BY_ID: (id: number) => `org:${id}`,
+    LIST: 'org:list',
   },
   USERS: {
-    ALL: 'users:*',
-    BY_ID: (id: number) => `users:${id}`,
-    LIST: 'users:list',
+    ALL: 'user:*',
+    BY_ID: (id: number) => `user:${id}`,
+    LIST: 'user:list',
   },
 };

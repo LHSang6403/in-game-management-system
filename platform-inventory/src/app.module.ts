@@ -1,11 +1,11 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppService } from './app.service';
-import { InventoryModule } from './modules/inventory/inventory.module';
+import { AppService } from 'src/app.service';
+import { InventoryModule } from '@modules/inventory/inventory.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { GraphQLLoggerMiddleware } from './middlewares/graphql-logger.middleware';
-import { RabbitmqModule } from './modules/rabbitmq/rabbitmq.module';
+import { GraphQLLoggerMiddleware } from 'src/middlewares/graphql-logger.middleware';
+import { RabbitmqModule } from '@modules/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
