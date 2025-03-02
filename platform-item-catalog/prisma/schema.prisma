@@ -16,6 +16,8 @@ model ItemType {
 
   extra     Json?
 
+  isDeleted Boolean  @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -33,6 +35,8 @@ model Item {
   itemType   ItemType @relation(fields: [itemTypeId], references: [id])
 
   extra      Json?
+
+  isDeleted  Boolean  @default(false)
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

@@ -51,6 +51,7 @@ export class ItemService {
     }
 
     const items = await this.prisma.item.findMany({
+      where: { isDeleted: false },
       include: { itemType: true },
     });
 
@@ -68,7 +69,7 @@ export class ItemService {
     }
 
     const item = await this.prisma.item.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: { itemType: true },
     });
 
@@ -119,8 +120,9 @@ export class ItemService {
   }
 
   async remove(id: number) {
-    const removed = await this.prisma.item.delete({
+    const removed = await this.prisma.item.update({
       where: { id },
+      data: { isDeleted: true },
     });
 
     await this.redisService.removeByPattern(CacheKey.ITEMS.ALL);

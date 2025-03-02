@@ -22,7 +22,7 @@ export class StitchingResolver {
     @Args('variables', { type: () => GraphQLJSON, nullable: true })
     variables: object,
     @Context() context: GraphQLContext,
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.stitchingService.executeGraphqlOperation(
       query,
       variables,
@@ -37,7 +37,7 @@ export class StitchingResolver {
     @Args('variables', { type: () => GraphQLJSON, nullable: true })
     variables: object,
     @Context() context: GraphQLContext,
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.stitchingService.executeGraphqlOperation(
       mutation,
       variables,

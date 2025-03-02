@@ -18,8 +18,14 @@ export class TransactionEntity {
   @Field(() => Int, { nullable: true })
   newQty?: number;
 
+  @Field(() => Int, { nullable: true })
+  changeQty?: number;
+
   @Field(() => String, { nullable: true })
   reason?: string;
+
+  @Field(() => String, { nullable: true })
+  status?: string;
 
   @Field(() => GraphQLDateTime, { nullable: true })
   timestamp?: string;

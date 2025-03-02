@@ -48,7 +48,7 @@ export class TransactionService implements OnModuleInit {
       query: {
         multi_match: {
           query: term,
-          fields: ['userId', 'reason'],
+          fields: ['userId', 'reason', 'status'],
           fuzziness: 'AUTO',
           operator: 'OR',
         },
@@ -70,6 +70,8 @@ export class TransactionService implements OnModuleInit {
         itemId: source.itemId,
         oldQty: source.oldQty,
         newQty: source.newQty,
+        changeQty: source.changeQty,
+        status: source.status,
         reason: source.reason,
         timestamp: source.timestamp,
       };

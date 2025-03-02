@@ -63,7 +63,9 @@ export class InventoryService {
       return JSON.parse(cached);
     }
 
-    const list = await this.prisma.inventory.findMany();
+    const list = await this.prisma.inventory.findMany({
+      where: { isDeleted: false },
+    });
     await this.redisService.setValue(
       CacheKey.INVENTORY.LIST,
       JSON.stringify(list),
@@ -78,7 +80,9 @@ export class InventoryService {
     if (cached) {
       return JSON.parse(cached);
     }
-    const inv = await this.prisma.inventory.findUnique({ where: { id } });
+    const inv = await this.prisma.inventory.findUnique({
+      where: { id, isDeleted: false },
+    });
     if (inv) {
       await this.redisService.setValue(cacheKey, JSON.stringify(inv));
     }
@@ -86,14 +90,16 @@ export class InventoryService {
     return inv;
   }
 
-  async updateQuantity(
+  async updateQuantityTransaction(
     id: number,
     change: number,
     userId: number,
     reason: string,
   ) {
     return this.prisma.$transaction(async (prisma) => {
-      const inv = await prisma.inventory.findUnique({ where: { id } });
+      const inv = await prisma.inventory.findUnique({
+        where: { id, isDeleted: false },
+      });
       if (!inv) throw new BadRequestException('Inventory not found');
 
       const newQty = inv.quantity + change;
@@ -155,7 +161,10 @@ export class InventoryService {
       const inv = await prisma.inventory.findUnique({ where: { id } });
       if (!inv) throw new BadRequestException('Inventory not found');
 
-      await prisma.inventory.delete({ where: { id } });
+      await prisma.inventory.update({
+        where: { id },
+        data: { isDeleted: true },
+      });
 
       await this.redisService.removeKey(CacheKey.INVENTORY.LIST);
       await this.redisService.removeKey(CacheKey.INVENTORY.BY_ID(id));
@@ -177,73 +186,6 @@ export class InventoryService {
       );
 
       this.logger.log(`Inventory deleted: Item ${id}`);
-    });
-  }
-
-  async updateInventory(
-    itemId: number,
-    changeQty: number,
-    userId: number,
-    reason: string,
-  ) {
-    return this.prisma.$transaction(async (prisma) => {
-      const inventory = await prisma.inventory.findFirst({ where: { itemId } });
-
-      if (!inventory) {
-        throw new Error(`Inventory for item ${itemId} not found`);
-      }
-
-      const newQty = inventory.quantity + changeQty;
-
-      if (newQty < 0) {
-        this.logger.warn(
-          `Inventory update failed for item ${itemId}: Negative balance`,
-        );
-
-        const failedTransaction = {
-          userId,
-          itemId,
-          oldQty: inventory.quantity,
-          newQty: inventory.quantity,
-          changeQty,
-          reason: `${reason} (Rollback due to negative balance)`,
-          status: 'FAILED',
-          timestamp: new Date(),
-        };
-
-        // Send FAILED transaction to RabbitMQ
-        await this.rabbitMQService.publishToQueue(
-          RABBITMQ_QUEUES.ADD_TRANSACTION,
-          failedTransaction,
-        );
-
-        throw new Error(`Insufficient inventory for item ${itemId}`);
-      }
-
-      // Update inventory
-      await prisma.inventory.updateMany({
-        where: { itemId },
-        data: { quantity: newQty },
-      });
-
-      const successfulTransaction = {
-        userId,
-        itemId,
-        oldQty: inventory.quantity,
-        newQty,
-        changeQty,
-        reason,
-        status: 'SUCCESS',
-        timestamp: new Date(),
-      };
-
-      // Send SUCCESS transaction to RabbitMQ
-      await this.rabbitMQService.publishToQueue(
-        RABBITMQ_QUEUES.ADD_TRANSACTION,
-        successfulTransaction,
-      );
-
-      this.logger.log(`Inventory updated: Item ${itemId}, New Qty: ${newQty}`);
     });
   }
 }

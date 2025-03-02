@@ -72,9 +72,11 @@ export class UserService {
     }
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, device?: string) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findUnique({
+        where: { email, isDeleted: false },
+      });
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
@@ -86,12 +88,57 @@ export class UserService {
 
       const token = this.jwtService.sign({ sub: user.id, email: user.email });
 
-      this.logger.log(`User ${user.id} logged in.`);
+      await this.prisma.userToken.upsert({
+        where: {
+          userId_device: {
+            userId: user.id,
+            device: device || 'unknown',
+          },
+        },
+        update: { token },
+        create: { userId: user.id, token, device: device || 'unknown' },
+      });
+
+      this.logger.log(`User ${user.id} logged in on device: ${device}`);
 
       return { token };
     } catch (error) {
       this.logger.error(`Error in login: ${error.message}`);
       throw new UnauthorizedException('Login failed');
+    }
+  }
+
+  async logout(token: string) {
+    try {
+      const trimmedToken = token.startsWith('Bearer ')
+        ? token.slice(7).trim()
+        : token.trim();
+
+      const decoded = this.jwtService.verify(trimmedToken);
+
+      await this.prisma.userToken.deleteMany({
+        where: { userId: decoded.sub, token: trimmedToken },
+      });
+
+      this.logger.log(`User ${decoded.sub} logged out (single device)`);
+
+      return { message: 'Logged out successfully' };
+    } catch (error) {
+      this.logger.error(`Error in logout: ${error.message}`);
+      throw new UnauthorizedException('Logout failed');
+    }
+  }
+
+  async logoutAll(userId: number) {
+    try {
+      await this.prisma.userToken.deleteMany({ where: { userId } });
+
+      this.logger.log(`User ${userId} logged out from all devices`);
+
+      return { message: 'Logged out from all devices' };
+    } catch (error) {
+      this.logger.error(`Error in logoutAll: ${error.message}`);
+      throw new InternalServerErrorException('Logout all failed');
     }
   }
 
@@ -134,7 +181,9 @@ export class UserService {
       return JSON.parse(cached);
     }
 
-    const users = await this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({
+      where: { isDeleted: false },
+    });
     await this.redisService.setValue(listKey, JSON.stringify(users));
 
     return users;
@@ -148,7 +197,9 @@ export class UserService {
       return JSON.parse(cached);
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id, isDeleted: false },
+    });
     if (user) {
       await this.redisService.setValue(userKey, JSON.stringify(user));
     }
@@ -158,7 +209,10 @@ export class UserService {
 
   async remove(id: number) {
     try {
-      await this.prisma.user.delete({ where: { id } });
+      await this.prisma.user.update({
+        where: { id },
+        data: { isDeleted: true },
+      });
       await this.redisService.removeByPattern(CacheKey.USERS.ALL);
 
       this.logger.log(`User ${id} deleted successfully.`);
@@ -172,7 +226,15 @@ export class UserService {
 
   async verifyToken(token: string) {
     try {
-      const decoded = this.jwtService.verify(token);
+      let trimmedToken = '';
+
+      if (token.startsWith('Bearer ')) {
+        trimmedToken = token.slice(6).trim();
+      } else {
+        trimmedToken = token.trim();
+      }
+
+      const decoded = this.jwtService.verify(trimmedToken);
       const user = await this.prisma.user.findUnique({
         where: { id: decoded.sub },
       });

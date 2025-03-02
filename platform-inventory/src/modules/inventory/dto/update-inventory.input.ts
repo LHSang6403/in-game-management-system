@@ -8,8 +8,8 @@ export class UpdateInventoryInput {
   @Field(() => Int)
   change: number;
 
-  @Field(() => Int)
-  userId: number;
+  @Field(() => Int, { nullable: true })
+  userId?: number;
 
   @Field(() => String)
   reason: string;

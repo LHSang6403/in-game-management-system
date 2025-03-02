@@ -39,7 +39,12 @@ export class OrganizationService {
       return JSON.parse(cached);
     }
 
-    const orgs = await this.prisma.organization.findMany();
+    const orgs = await this.prisma.organization.findMany({
+      where: { isDeleted: false },
+      include: {
+        children: true,
+      },
+    });
     await this.redisService.setValue(listKey, JSON.stringify(orgs));
 
     return orgs;
@@ -53,7 +58,7 @@ export class OrganizationService {
     }
 
     const org = await this.prisma.organization.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: {
         children: true,
       },

@@ -40,8 +40,21 @@ export class UserResolver {
   async login(
     @Args('email') email: string,
     @Args('password') password: string,
+    @Args('device', { nullable: true }) device?: string,
   ) {
-    const result = await this.userService.login(email, password);
+    const result = await this.userService.login(email, password, device);
     return result.token;
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Args('token') token: string) {
+    await this.userService.logout(token);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  async logoutAll(@Args('userId', { type: () => Int }) userId: number) {
+    await this.userService.logoutAll(userId);
+    return true;
   }
 }

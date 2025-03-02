@@ -31,7 +31,7 @@ export class InventoryResolver {
 
   @Mutation(() => InventoryEntity)
   async updateInventory(@Args('data') data: UpdateInventoryInput) {
-    return this.inventoryService.updateQuantity(
+    return this.inventoryService.updateQuantityTransaction(
       data.id,
       data.change,
       data.userId,
