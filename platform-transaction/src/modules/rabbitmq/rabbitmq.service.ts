@@ -11,7 +11,7 @@ export class RabbitMQService implements OnModuleInit {
   private queuesToAssert = [RABBITMQ_QUEUES.ADD_TRANSACTION];
 
   async onModuleInit() {
-    const url = process.env.RABBITMQ_URL || 'amqp://localhost';
+    const url = process.env.RABBITMQ_URL || '';
     this.connection = await amqp.connect(url);
     this.channel = await this.connection.createChannel();
 

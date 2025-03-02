@@ -10,7 +10,7 @@ import { UserController } from '@modules/user/user.controller';
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secretKey',
+      secret: process.env.JWT_SECRET || '',
       signOptions: { expiresIn: '1d' },
     }),
   ],

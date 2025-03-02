@@ -7,19 +7,21 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { HttpModule } from '@nestjs/axios';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { GraphQLLoggerMiddleware } from 'src/middlewares/graphql-logger.middleware';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     HttpModule,
     StitchingModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [StitchingModule],
       useFactory: async (stitchingService: StitchingService) => {
-        // await new Promise((resolve) => setTimeout(resolve, 2000));
-
         return {
           schema: stitchingService.mergedSchema || undefined,
           debug: true,

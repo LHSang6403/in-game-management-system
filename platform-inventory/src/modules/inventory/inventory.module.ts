@@ -13,7 +13,7 @@ import { RabbitMQService } from '@modules/rabbitmq/rabbitmq.service';
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBIT_MQ || 'amqp://localhost:5672'],
+          urls: [process.env.RABBIT_MQ || ''],
           queue: process.env.RABBIT_MQ_TRANSACTION_QUEUE || 'transaction_queue',
           queueOptions: { durable: false },
         },

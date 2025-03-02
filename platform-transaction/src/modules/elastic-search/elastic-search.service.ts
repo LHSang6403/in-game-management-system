@@ -13,8 +13,8 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
 
   onModuleInit() {
-    const host = process.env.ELASTICSEARCH_HOST || 'localhost';
-    const port = process.env.ELASTICSEARCH_HTTP_PORT || '9200';
+    const host = process.env.ELASTICSEARCH_HOST || '';
+    const port = parseInt(process.env.ELASTICSEARCH_HTTP_PORT) || 0;
 
     this.client = new Client({
       node: `http://${host}:${port}`,

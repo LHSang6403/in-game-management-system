@@ -22,24 +22,19 @@ export class StitchingService implements OnModuleInit {
     const services = [
       {
         name: 'Auth',
-        url: process.env.AUTH_SERVICE_URL || 'http://localhost:3001/graphql',
+        url: process.env.AUTH_SERVICE_URL || '',
       },
       {
         name: 'Item Catalog',
-        url:
-          process.env.ITEM_CATALOG_SERVICE_URL ||
-          'http://localhost:3002/graphql',
+        url: process.env.ITEM_CATALOG_SERVICE_URL || '',
       },
       {
         name: 'Transaction',
-        url:
-          process.env.TRANSACTION_SERVICE_URL ||
-          'http://localhost:3003/graphql',
+        url: process.env.TRANSACTION_SERVICE_URL || '',
       },
       {
         name: 'Inventory',
-        url:
-          process.env.INVENTORY_SERVICE_URL || 'http://localhost:3004/graphql',
+        url: process.env.INVENTORY_SERVICE_URL || '',
       },
     ];
 
