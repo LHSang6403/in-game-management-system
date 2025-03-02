@@ -237,6 +237,16 @@ export class UserService {
       const decoded = this.jwtService.verify(trimmedToken);
       const user = await this.prisma.user.findUnique({
         where: { id: decoded.sub },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          organizationId: true,
+          createdAt: true,
+          updatedAt: true,
+          extra: true,
+        },
       });
 
       if (!user) {

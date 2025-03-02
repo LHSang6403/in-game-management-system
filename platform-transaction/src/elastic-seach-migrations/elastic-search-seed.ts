@@ -1,4 +1,4 @@
-import { ElasticsearchService } from '../src/modules/elastic-search/elastic-search.service';
+import { ElasticsearchService } from '../modules/elastic-search/elastic-search.service';
 
 async function main() {
   const service = new ElasticsearchService();

@@ -1,9 +1,16 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { RedisService } from '../redis/redis.service';
 import { CacheKey } from 'src/constants/cache-key.constant';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { RABBITMQ_QUEUES } from 'src/constants/rabbitmq.constant';
+import { Role } from '@constants/role.constant';
 
 @Injectable()
 export class InventoryService {
@@ -187,5 +194,33 @@ export class InventoryService {
 
       this.logger.log(`Inventory deleted: Item ${id}`);
     });
+  }
+
+  async canUpdateInventory(
+    userId: number,
+    userRole: string,
+    inventoryId: number,
+  ) {
+    if (!userId) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { id: inventoryId },
+      select: { userId: true },
+    });
+
+    if (!inventory) {
+      throw new ForbiddenException('Inventory not found or does not exist');
+    }
+
+    if (userRole !== Role.ADMIN && userId !== inventory.userId) {
+      this.logger.warn(
+        `User ${userId} with role ${userRole} attempted to update inventory ${inventoryId} owned by ${inventory.userId}`,
+      );
+      throw new ForbiddenException(
+        'You are not allowed to update this inventory',
+      );
+    }
   }
 }

@@ -5,6 +5,10 @@ import { UrlLoader } from '@graphql-tools/url-loader';
 import { wrapSchema } from '@graphql-tools/wrap';
 import fetch from 'cross-fetch';
 import { GraphQLError, print, GraphQLSchema, graphql } from 'graphql';
+import {
+  extractHeadersForExecution,
+  extractHeadersForRemoteSchema,
+} from 'src/utils/http.utils';
 
 @Injectable()
 export class StitchingService implements OnModuleInit {
@@ -55,12 +59,10 @@ export class StitchingService implements OnModuleInit {
     const validSchemas = schemas.filter((schema) => schema !== null);
 
     if (validSchemas.length === 0) {
-      this.logger.error('No valid schemas available for stitching.');
       throw new Error('No valid schemas available for stitching.');
     }
 
     if (!validSchemas.some((s) => s.getQueryType())) {
-      this.logger.error('No services provided a valid Query root type.');
       throw new Error('No services provided a valid Query root type.');
     }
 
@@ -112,13 +114,10 @@ export class StitchingService implements OnModuleInit {
           const query = print(document);
           this.logger.log(`Executing query on ${uri}:`, query);
 
-          const authToken = context.req?.headers['authorization'] || '';
+          const headers = extractHeadersForRemoteSchema(context);
           const fetchResult = await fetch(uri, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: authToken,
-            },
+            headers,
             body: JSON.stringify({ query, variables }),
           });
 
@@ -152,11 +151,18 @@ export class StitchingService implements OnModuleInit {
     }
 
     try {
+      const headers = extractHeadersForExecution(context);
       const result = await graphql({
         schema: this.mergedSchema as GraphQLSchema,
         source: query,
         variableValues: variables || {},
-        contextValue: context,
+        contextValue: {
+          contextValue: {
+            ...context,
+            req: context.req,
+            headers,
+          },
+        },
       });
 
       if (result.errors) {

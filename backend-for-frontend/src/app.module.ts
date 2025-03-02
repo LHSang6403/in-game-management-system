@@ -26,6 +26,7 @@ import { GraphQLLoggerMiddleware } from 'src/middlewares/graphql-logger.middlewa
           autoSchemaFile: true,
           playground: false,
           plugins: [ApolloServerPluginLandingPageLocalDefault()],
+          context: ({ req }) => ({ req }),
         };
       },
       inject: [StitchingService],
