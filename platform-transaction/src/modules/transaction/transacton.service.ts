@@ -45,10 +45,11 @@ export class TransactionService implements OnModuleInit {
 
   async searchTransactions(term: string) {
     const esQuery = {
+      size: 100,
       query: {
         multi_match: {
           query: term,
-          fields: ['userId', 'reason', 'status'],
+          fields: ['reason', 'status'],
           fuzziness: 'AUTO',
           operator: 'OR',
         },
