@@ -18,7 +18,7 @@ import { GraphQLLoggerMiddleware } from 'src/middlewares/graphql-logger.middlewa
       driver: ApolloDriver,
       imports: [StitchingModule],
       useFactory: async (stitchingService: StitchingService) => {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
 
         return {
           schema: stitchingService.mergedSchema || undefined,

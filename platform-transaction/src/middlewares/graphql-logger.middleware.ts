@@ -9,15 +9,7 @@ export class GraphQLLoggerMiddleware implements NestMiddleware {
     const originalSend = res.send;
 
     res.send = (body: any) => {
-      try {
-        const parsedBody = typeof body === 'string' ? JSON.parse(body) : body;
-        this.logger.log(
-          `[GraphQL] Response:\n${JSON.stringify(parsedBody, null, 2)}`,
-        );
-      } catch (error) {
-        this.logger.log(`[GraphQL] Raw Response:\n${body}`);
-      }
-
+      this.logger.log('Sent schema');
       return originalSend.call(res, body);
     };
 

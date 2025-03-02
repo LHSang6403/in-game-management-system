@@ -25,9 +25,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   onModuleDestroy() {
     if (this.client) {
       this.client.quit();
+      this.logger.log('Redis disconnected');
     }
-
-    this.logger.log('Redis disconnected');
   }
 
   getClient(): Redis {

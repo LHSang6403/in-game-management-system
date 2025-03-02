@@ -4,6 +4,8 @@ services:
     image: redis:7
     container_name: system-redis
     command: redis-server --requirepass mysecurepassword
+    environment:
+      - REDIS_PASSWORD=mysecurepassword
     networks:
       - system-network
     ports:
