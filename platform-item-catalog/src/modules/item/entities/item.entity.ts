@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { ItemTypeEntity } from 'src/modules/item-type/entities/item-type.entity';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 @ObjectType()
 export class ItemEntity {
@@ -21,9 +22,9 @@ export class ItemEntity {
   @Field(() => ItemTypeEntity)
   itemType: ItemTypeEntity;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   createdAt: string;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   updatedAt: string;
 }

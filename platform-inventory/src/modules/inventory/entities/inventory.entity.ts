@@ -1,5 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 @ObjectType()
 export class InventoryEntity {
@@ -18,9 +19,9 @@ export class InventoryEntity {
   @Field(() => GraphQLJSON, { nullable: true })
   json?: typeof GraphQLJSON;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   createdAt: string;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   updatedAt: string;
 }

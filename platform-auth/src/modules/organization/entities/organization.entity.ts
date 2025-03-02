@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 @ObjectType()
 export class OrganizationEntity {
@@ -14,9 +15,9 @@ export class OrganizationEntity {
   @Field(() => OrganizationEntity, { nullable: true })
   parentOrg?: OrganizationEntity;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   createdAt: string;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   updatedAt: string;
 }

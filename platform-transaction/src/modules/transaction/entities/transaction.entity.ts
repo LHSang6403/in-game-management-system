@@ -1,4 +1,5 @@
 import { Field, ObjectType, ID, Int } from '@nestjs/graphql';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 @ObjectType()
 export class TransactionEntity {
@@ -20,6 +21,6 @@ export class TransactionEntity {
   @Field(() => String, { nullable: true })
   reason?: string;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => GraphQLDateTime, { nullable: true })
   timestamp?: string;
 }

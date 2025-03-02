@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Role } from '@prisma/client';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 registerEnumType(Role, { name: 'Role' });
 
@@ -17,9 +18,9 @@ export class UserEntity {
   @Field(() => Role)
   role: Role;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   createdAt: string;
 
-  @Field(() => String)
+  @Field(() => GraphQLDateTime)
   updatedAt: string;
 }
