@@ -11,7 +11,7 @@
 - The system should record inventory balance update history (record pre/current balance after an update).
 - Easy to scale
 
-## Document:
+## Documents:
 https://drive.google.com/drive/folders/1QEPHLD0kFbCp5-kHtuXBISaRHcBbL-jX?usp=sharing
 
 ## System design:
