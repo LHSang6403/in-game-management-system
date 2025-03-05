@@ -6,7 +6,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3002;
 
   await app.listen(port, () => {
-    console.log(`Auth Service is running on port ${port}`);
+    console.log(`Item Catalog Service is running on port ${port}`);
   });
 }
 bootstrap();
